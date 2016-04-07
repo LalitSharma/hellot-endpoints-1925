@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>JSON Table</title>
+      <style>
+         table, th , td {
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 5px;
+         }
+         table tr:nth-child(odd) {
+            background-color: #f2f2f2;
+         }
+         table tr:nth-child(even) {
+            background-color: #ffffff;
+         }
+      </style>
+<script
+	src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
+</head>
+
+<body>
+
+	<div ng-app="myApp" ng-controller="customersCtrl">
+
+		<label>Phone Number : <input ng-model="phonenumber" required ng-keypress="filterValue($event)"/>
+		</label> 
+		<label>Combination Count : <input  ng-disabled=true ng-model="maxCombinations" />
+		</label>
+		<button ng-click=getData2()>Get Combinations</button>
+		<div>
+			<button ng-disabled="previousDisabled" ng-click=doPrevious()>Previous ten</button>
+			<button ng-disabled="nextDisabled" ng-click=doNext()>Next ten</button>
+		</div>
+		<div>
+		<label>From : <input  ng-disabled=true ng-model="start" />
+		</label>
+		<label>Count : <input  ng-disabled=true ng-model="currentPageCount" />
+		</label>
+		</div>
+		<table>
+			<tr ng-repeat="(key, values) in names">
+				<td ng-repeat="value in values">{{ value }}</td>
+			</tr>
+		</table>
+
+
+
+	<table>
+		<tr>
+			<th ng-repeat="(key, val) in items[0]">{{key}}</th>
+		</tr>
+		<tr ng-repeat="item in items">
+			<td ng-repeat="(key, val) in item">{{val.combination}}</td>
+		</tr>
+	</table>
+
+	</div>
+
+
+	<script>
+		var app = angular.module('myApp', []);
+		app.controller('customersCtrl', function($scope, $http) {
+
+		$scope.start = 1;
+		$scope.perpage = 10;
+		$scope.currentstart = $scope.start;
+		$scope.currentPageCount = $scope.perpage;
+		$scope.previousDisabled = false;
+		$scope.nextDisabled = false;
+
+
+
+			$scope.getData = function() {
+				console.log("getData()");
+				//alert( "postParam: " + postParam);
+				$http.get("data.json")
+						.then(function(response) {
+							console.log("success");
+							$scope.names = response.data;
+							//console.log($scope.names);
+						}, function(response) {
+							console.log("error");
+							alert("error");
+							$scope.names = JSON.stringify({error : "error"});
+						});
+			};
+
+			$scope.getData2 = function() {
+				console.log("getData2() $scope.phonenumber = " + $scope.phonenumber);
+				var validPhoneNumber = true;
+				var minPhoneNumber = 1;//999999;
+				var maxPhoneNumber = 9999999999;
+				if(isNaN($scope.phonenumber)){
+					validPhoneNumber = false;
+					alert("Phone number must be greater than " + minPhoneNumber.toString() + " and less than " + maxPhoneNumber.toString());
+				}
+				
+				if($scope.phonenumber > maxPhoneNumber){
+					validPhoneNumber = false;
+					alert("Phone number must be less than " + maxPhoneNumber.toString());
+				}
+				if($scope.phonenumber <= minPhoneNumber){
+					validPhoneNumber = false;
+					alert("Phone number must be greater than " + minPhoneNumber.toString());
+				}
+				if(validPhoneNumber){
+					$scope.getCombinationCount();
+					$scope.getCombinations();
+				}
+			};
+
+			$scope.getCombinations = function(){
+				console.log("getCombinations () $scope.start = " + $scope.start);
+				var restResource = "combinationstring";
+				//alert( "postParam: " + postParam);
+				var endpointUrl = "http://localhost:8080/_ah/api/helloworld/v1";
+				var url = endpointUrl + "/" + restResource + "/" + $scope.phonenumber.toString() + "/" + $scope.start.toString() +"/" +$scope.perpage.toString();
+				$http.get(url)
+						.then(function(response) {
+							console.log("success");
+							$scope.items = response.data;
+							//console.log($scope.names);
+						}, function(response) {
+							console.log("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+							alert("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+							$scope.names = JSON.stringify({error : "error"});
+						});
+			};
+
+			$scope.getCombinationCount = function(){
+				console.log("getCombinationCount () $scope.phonenumber = " + $scope.phonenumber);
+				var restResource = "combinationcounts";
+				//alert( "postParam: " + postParam);
+				var endpointUrl = "http://localhost:8080/_ah/api/helloworld/v1";
+				var url = endpointUrl + "/" + restResource + "/" + $scope.phonenumber.toString();
+				$http.get(url)
+						.then(function(response) {
+							console.log("success");
+							$scope.maxCombinations = response.data.maxCombinations;
+							//console.log($scope.names);
+						}, function(response) {
+							console.log("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+							alert("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+							$scope.names = JSON.stringify({error : "error"});
+						});
+			};	
+
+			$scope.filterValue = function($event){
+					if(isNaN(String.fromCharCode($event.keyCode))){
+						$event.preventDefault();
+					}
+			};
+			
+			$scope.doNext = function(){
+				console.log("doNext()");
+				$scope.start = $scope.start + $scope.perpage;
+				$scope.previousDisabled = false;
+				$scope.getCombinations();
+				if($scope.maxCombinations <= $scope.start + $scope.perpage){
+					$scope.nextDisabled = true;
+					if($scope.maxCombinations < $scope.start + $scope.perpage){
+						$scope.currentPageCount = $scope.maxCombinations - $scope.start;
+					}
+				}
+				
+			};
+			$scope.doPrevious = function(){
+				console.log("doPrevious() $scope.start = " + $scope.start + " $scope.perpage = " + $scope.perpage);
+				
+				if( ($scope.start - $scope.perpage) < 0){
+					$scope.start = 1;
+				$scope.previousDisabled = true;
+				}else{
+					$scope.start = $scope.start - $scope.perpage;
+				}
+				$scope.getCombinations();
+				if($scope.maxCombinations > $scope.start + $scope.perpage){
+					$scope.nextDisabled = false;
+					$scope.currentPageCount = $scope.perpage;
+				}
+				
+			};
+		});
+	</script>
+
+</body>
+</html>
+

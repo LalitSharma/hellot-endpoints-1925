@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>JSON Table</title>
+<link rel="stylesheet"
+	href="http://maxcdn.bootstrapcdn.com/bootswatch/3.2.0/sandstone/bootstrap.min.css">
+<link rel="stylesheet"
+	href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+<style>
+body {
+	padding-top: 10px;
+	padding-left: 10px;
+}
+</style>
+
+<style>
+table, th, td {
+	border: 1px solid grey;
+	border-collapse: collapse;
+	padding: 5px;
+}
+
+table tr:nth-child(odd) {
+	background-color: #f2f2f2;
+}
+
+table tr:nth-child(even) {
+	background-color: #ffffff;
+}
+</style>
+
+<script
+	src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
+</head>
+
+<body>
+
+	<div class="container" ng-app="myApp" ng-controller="customersCtrl">
+		<table width="590px" border="0" cellspacing="0" cellpadding="0" style="margin-top : -0.15em"  align="center">
+		<tr>
+		<td>
+		<label>Phone Number : <input ng-model="phonenumber" required
+			ng-keypress="filterValue($event)" />
+		</td>
+		<td>
+		</label> <label>Combination Count : <input ng-disabled=true
+			ng-model="maxCombinations" />
+		</label>
+		</tr>
+		
+		<tr>		
+		<td colspan="3" align="center">
+		<button ng-disabled="dataLoading" ng-click=getData2()>Get Combinations</button>
+				<img ng-if="dataLoading"
+					src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
+
+		</td>
+		</tr>
+
+		<tr>
+		<td>
+			<label>From : <input ng-disabled=true ng-model="start" />
+		</td>
+		<td>
+			</label> <label>Count : <input ng-disabled=true
+				ng-model="currentPageCount" />
+			</label>
+		</tr>
+
+		<tr>
+		<td align="center">
+			<button ng-disabled="previousDisabled" ng-click=doPrevious()> Previous ten</button>
+		</td>
+		<td align="center">
+			<button ng-disabled="nextDisabled" ng-click=doNext()>Next ten</button>
+		</tr>
+		
+		</table>
+
+		<br/>
+		<table  align="center">
+			<tr ng-repeat="(key, values) in names">
+				<td ng-repeat="value in values">{{ value }}</td>
+			</tr>
+		</table>
+
+
+
+		<table class="table table-bordered table-striped">
+			<tr>
+				<th ng-repeat="(key, val) in items[0]">{{key}}</th>
+			</tr>
+			<tr ng-repeat="item in items">
+				<td ng-repeat="(key, val) in item" >{{val.combination}}</td>
+			</tr>
+		</table>
+
+	</div>
+
+
+	<script>
+		var app = angular.module('myApp', []);
+		app.controller('customersCtrl', function($scope, $http) {
+
+		$scope.start = 1;
+		$scope.perpage = 10;
+		$scope.currentstart = $scope.start;
+		$scope.currentPageCount = $scope.perpage;
+		$scope.previousDisabled = false;
+		$scope.nextDisabled = false;
+$scope.dataLoading = false;
+		var serverUrl = "http://localhost:8080";
+		var apiPath = "/_ah/api/helloworld/v1";
+		endpointUrl = serverUrl + apiPath;
+
+		$scope.getData2 = function() {
+			console.log("getData2() $scope.phonenumber = " + $scope.phonenumber);
+			var validPhoneNumber = true;
+			var minPhoneNumber = 1;//999999;
+			var maxPhoneNumber = 9999999999;
+			if(isNaN($scope.phonenumber)){
+				validPhoneNumber = false;
+				alert("Phone number must be greater than " + minPhoneNumber.toString() + " and less than " + maxPhoneNumber.toString());
+			}
+			
+			if($scope.phonenumber > maxPhoneNumber){
+				validPhoneNumber = false;
+				alert("Phone number must be less than " + maxPhoneNumber.toString());
+			}
+			if($scope.phonenumber <= minPhoneNumber){
+				validPhoneNumber = false;
+				alert("Phone number must be greater than " + minPhoneNumber.toString());
+			}
+			if(validPhoneNumber){
+				$scope.getCombinationCount();
+				$scope.getCombinations();
+			}
+		};
+
+		$scope.getCombinations = function(){
+			console.log("getCombinations () $scope.start = " + $scope.start);
+$scope.dataLoading = true;
+
+			var restResource = "combinationstring";
+			//alert( "postParam: " + postParam);
+			var url = endpointUrl + "/" + restResource + "/" + $scope.phonenumber.toString() + "/" + $scope.start.toString() +"/" +$scope.perpage.toString();
+			$http.get(url)
+				.then(function(response) {
+					console.log("success");
+					$scope.items = response.data;
+					//console.log($scope.names);
+$scope.dataLoading = false;
+
+				}, function(response) {
+					console.log("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+					alert("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+					$scope.names = JSON.stringify({error : "error"});
+$scope.dataLoading = false;
+
+				});
+		};
+
+		$scope.getCombinationCount = function(){
+$scope.dataLoading = true;
+
+			console.log("getCombinationCount () $scope.phonenumber = " + $scope.phonenumber);
+			var restResource = "combinationcounts";
+			//alert( "postParam: " + postParam);
+			var url = endpointUrl + "/" + restResource + "/" + $scope.phonenumber.toString();
+			$http.get(url)
+				.then(function(response) {
+					console.log("success");
+					$scope.maxCombinations = response.data.maxCombinations;
+					//console.log($scope.names);
+$scope.dataLoading = false;
+
+				}, function(response) {
+					console.log("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+					alert("Error encounterd - Response [statusText=" + response.statusText + ", status=" + response.status +"]");
+					$scope.names = JSON.stringify({error : "error"});
+$scope.dataLoading = false;
+
+				});
+		};	
+
+		$scope.filterValue = function($event){
+			if(isNaN(String.fromCharCode($event.keyCode))){
+				$event.preventDefault();
+			}
+		};
+			
+		$scope.doNext = function(){
+			console.log("doNext()");
+			$scope.start = $scope.start + $scope.perpage;
+			$scope.previousDisabled = false;
+			$scope.getCombinations();
+			if($scope.maxCombinations <= $scope.start + $scope.perpage){
+				$scope.nextDisabled = true;
+				if($scope.maxCombinations < $scope.start + $scope.perpage){
+					$scope.currentPageCount = $scope.maxCombinations - $scope.start;
+				}
+			}
+			
+		};
+		$scope.doPrevious = function(){
+			console.log("doPrevious() $scope.start = " + $scope.start + " $scope.perpage = " + $scope.perpage);
+			
+			if( ($scope.start - $scope.perpage) < 0){
+				$scope.start = 1;
+			$scope.previousDisabled = true;
+			}else{
+				$scope.start = $scope.start - $scope.perpage;
+			}
+			$scope.getCombinations();
+			if($scope.maxCombinations > $scope.start + $scope.perpage){
+				$scope.nextDisabled = false;
+				$scope.currentPageCount = $scope.perpage;
+			}
+			
+		};
+	});
+	</script>
+
+</body>
+</html>
+

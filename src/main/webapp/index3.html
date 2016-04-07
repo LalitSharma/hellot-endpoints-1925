@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>JSON Table</title>
+      <style>
+         table, th , td {
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 5px;
+         }
+         table tr:nth-child(odd) {
+            background-color: #f2f2f2;
+         }
+         table tr:nth-child(even) {
+            background-color: #ffffff;
+         }
+      </style>
+<script
+	src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
+</head>
+
+<body>
+
+	<div ng-app="myApp" ng-controller="customersCtrl">
+		<label>Phone Number<input ng-model="phonenumber" />
+		</label> 
+<label>Combination Count<input ng-model="maxCombinations" />
+		</label>
+		<button ng-click=getData()>Get</button>
+		<button ng-click=getData2()>Post</button>
+
+		<table>
+			<tr ng-repeat="(key, values) in names">
+				<td ng-repeat="value in values">{{ value }}</td>
+			</tr>
+		</table>
+
+
+
+<table>
+    <tr>
+        <th ng-repeat="(key, val) in items[0]">{{key}}</th>
+    </tr>
+    <tr ng-repeat="item in items">
+        <td ng-repeat="(key, val) in item">
+{{val.combination}}</td>
+    </tr>
+</table>
+
+	</div>
+
+
+	<script>
+		var app = angular.module('myApp', []);
+		app.controller('customersCtrl', function($scope, $http) {
+
+$scope.start = 1;
+$scope.perpage = 10;
+$scope.currentstart = $scope.start;
+
+
+			$scope.getData = function() {
+				console.log("getData()");
+				//alert( "postParam: " + postParam);
+				$http.get("data.json")
+						.then(function(response) {
+							console.log("success");
+							$scope.names = response.data;
+							//console.log($scope.names);
+						}, function(response) {
+							console.log("error");
+							alert("error");
+							$scope.names = JSON.stringify({error : "error"});
+						});
+			};
+
+			$scope.getData2 = function() {
+				console.log("getData2()");
+				//alert( "postParam: " + postParam);
+				url = "http://localhost:8080/_ah/api/helloworld/v1/combinationstring/" + $scope.phonenumber.toString() + "/" + $scope.start.toString() +"/" +$scope.perpage.toString()
+				$http.get(url)
+						.then(function(response) {
+							console.log("success");
+							$scope.items = response.data;
+							//console.log($scope.names);
+						}, function(response) {
+							console.log("error");
+							alert("error");
+							$scope.names = JSON.stringify({error : "error"});
+						});
+			};
+
+			};
+
+		});
+	</script>
+
+</body>
+</html>
+
