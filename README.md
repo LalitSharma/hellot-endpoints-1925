@@ -1,10 +1,10 @@
-appengine-endpoints-helloendpoints-java-maven
+appengine-endpoints-phonenumbercombinations-java-maven
 =============================================
 
-A "hello world" application for Google Cloud Endpoints in Java.
+A application for Google App Engine with Angular page & Endpoints in Java.
 
 ## Products
-- [App Engine][1]
+- Phone number alpha numerice combination generater
 
 ## Language
 - [Java][2]
@@ -13,7 +13,7 @@ A "hello world" application for Google Cloud Endpoints in Java.
 - [Google Cloud Endpoints][3]
 - [Google App Engine Maven plugin][4]
 
-## Setup Instructions
+## Instructions to use as example for app engine starter code
 
 1. Update the value of `application` in `appengine-web.xml` to the app
    ID you have registered in the App Engine admin console and would
@@ -39,7 +39,7 @@ A "hello world" application for Google Cloud Endpoints in Java.
    $ mvn appengine:endpoints_get_client_lib
 
    It will generate a jar file named something like
-   `helloworld-v1-1.18.0-rc-SNAPSHOT.jar` under the
+   `hellot-endpoints-1925-rc-SNAPSHOT.jar` under the
    `target/endpoints-client-libs/<api-name>/target` directory of your
    project, as well as install the artifact into your local maven
    repository.
